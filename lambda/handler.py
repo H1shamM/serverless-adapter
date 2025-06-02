@@ -12,19 +12,11 @@ def lambda_handler(event, context):
 
     """
     # 1. Load config from env
-    access_key = os.environ.get("AWS_ACCESS_KEY_ID")
-    secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
-    region = os.environ.get("AWS_REGION", "us-east-1")
-
-    if not access_key or not secret_key:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Missing AWS credentials"})
-        }
+    region = os.environ.get("AWS_REGION", "eu-north-1")
 
     # 2. Fetch raw EC2 data
     try:
-        raw = list_ec2_instances(access_key, secret_key, region)
+        raw = list_ec2_instances(region)
     except ClientError as e:
         return {
             "statusCode": 500,

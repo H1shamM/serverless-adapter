@@ -4,15 +4,11 @@ from datetime import datetime
 from typing import List, Dict
 
 
-def list_ec2_instances(access_key: str, secret_key: str, region: str = "us-east-1") -> List[Dict]:
+def list_ec2_instances(region: str = "eu-north-1") -> List[Dict]:
     """
     Returns raw EC2 instance data.
     """
-    session = boto3.Session(
-        aws_access_key_id=access_key,
-        aws_secret_access_key=secret_key,
-        region_name=region
-    )
+    session = boto3.Session(region_name=region)
     ec2 = session.resource("ec2")
     return [inst.meta.data for inst in ec2.instances.all()]
 
