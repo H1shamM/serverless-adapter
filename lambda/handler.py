@@ -4,7 +4,8 @@ import json
 
 from botocore.exceptions import ClientError
 
-from aws_utils import list_ec2_instances, normalize_instances
+from aws_utils import list_ec2_instances, list_s3_buckets, normalize_s3, normalize_ec2
+
 
 def lambda_handler(event, context):
     """
@@ -16,15 +17,18 @@ def lambda_handler(event, context):
 
     # 2. Fetch raw EC2 data
     try:
-        raw = list_ec2_instances(region)
+        raw_ec2 = list_ec2_instances(region)
+        raw_s3 = list_s3_buckets()
     except ClientError as e:
         return {
             "statusCode": 500,
             "body": json.dumps({"error": f"AWS error: {e}"})
         }
     # 3. Fetch and normalize data
-    data = normalize_instances(raw)
+    data_ec2 = normalize_ec2(raw_ec2)
+    data_s3 = normalize_s3(raw_s3)
 
+    data = data_ec2 + data_s3
     return {
         "statusCode": 200,
         "body": json.dumps(data, default=str)

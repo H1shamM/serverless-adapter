@@ -39,6 +39,22 @@ resource "aws_iam_role_policy" "lambda_ec2_read" {
   role   = aws_iam_role.lambda_exec_role.id
 }
 
+resource "aws_iam_role_policy" "lambda_s3_list" {
+  name = "serverless_adapter_s3_list"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = ["s3:ListAllMyBuckets"]
+        Effect   = "Allow"
+        Resource = ["*"]
+      }
+    ]
+  })
+  role   = aws_iam_role.lambda_exec_role.id
+}
+
 # ---------------------------------------------
 # 2. Lambda Function
 # ---------------------------------------------
@@ -113,4 +129,26 @@ resource "aws_api_gateway_deployment" "adapter_deployment" {
   rest_api_id = aws_api_gateway_rest_api.adapter_api.id
   stage_name = "prod"
   description = "Deploy API to prod stage"
+}
+
+# ---------------------------------------------
+# 4. EventBridge (CloudWatch Events) Schedule
+# ---------------------------------------------
+resource "aws_cloudwatch_event_rule" "every_24_hours" {
+  name                  = "run_adapter_every_24_hours"
+  description           = "Trigger adapter Lambda every 24 hours"
+  schedule_expression = "rate(24 hours)"
+}
+
+resource "aws_cloudwatch_event_target" "invoke_lambda" {
+  arn  = aws_lambda_function.adapter.arn
+  rule = aws_cloudwatch_event_rule.every_24_hours.name
+}
+
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id = "AllowEventBridgeInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.adapter.function_name
+  principal     = "events.amazonaws.com"
+  source_arn = aws_cloudwatch_event_rule.every_24_hours.arn
 }
