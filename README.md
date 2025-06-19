@@ -42,7 +42,7 @@
    Navigate to the `lambda/` directory and create a deployment package:
 
    ```bash
-   cd lambda
+   cd adapter
    pip install --target ./package -r requirements.txt
    cp handler.py package/
    cd package
@@ -127,7 +127,7 @@ terraform destroy
 Confirm with `yes`. Then remove local artifacts:
 
 ```bash
-rm ../lambda/lambda_deploy.zip
+rm ../adapter/lambda_deploy.zip
 ```
 
 ---
